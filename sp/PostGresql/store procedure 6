@@ -1,0 +1,184 @@
+﻿-- Function: guardar_activos(character, character varying, text, character varying, character varying, date, date, character, character, character varying, integer, character, double precision, integer, text, character varying, character varying, text, character varying, double precision, character varying, character varying, date, character varying, character varying, character, character, character, character varying, character, date, character varying, character varying, date, character varying, character varying, character varying, character varying, date, character, character, character, integer, character, character, saf_dta_type[], character)
+
+-- DROP FUNCTION guardar_activos(character, character varying, text, character varying, character varying, date, date, character, character, character varying, integer, character, double precision, integer, text, character varying, character varying, text, character varying, double precision, character varying, character varying, date, character varying, character varying, character, character, character, character varying, character, date, character varying, character varying, date, character varying, character varying, character varying, character varying, date, character, character, character, integer, character, character, saf_dta_type[], character);
+
+CREATE OR REPLACE FUNCTION guardar_activos(pcodemp character, pcodact character varying, pdenact text, pmaract character varying, pmodact character varying, pfecregact date, pfeccmpact date, pcodconbie character, pcodite character, pspg_cuenta_act character varying, pesttipinm integer, pcatalogo character, pcosto double precision, pestdepact integer, pobsact text, pfotact character varying, pcod_pro character varying, pnompro text, pnumordcom character varying, pmonordcom double precision, pcodfuefin character varying, pnumsolpag character varying, pfecemisol date, pcodsitcon character varying, pcodconcom character varying, pcodgru character, pcodsubgru character, pcodsec character, ptipinm character varying, pnumero character, pfecordcomp date, ptipordcomp character varying, pnumfact character varying, pfecfact date, pdoccomp character varying, pnomprov character varying, pnumordpag character varying, pnumctlper character varying, pfectlper date, pcodunires character, pcodubifis character, pcoduniresuso character, pcantidad integer, pcodacthasta character, pnumerohasta character, partes saf_dta_type[], accion character DEFAULT 'INSERT'::bpchar)
+  RETURNS boolean AS
+$BODY$ 
+   
+   DECLARE 
+
+     i int;
+     pcodactinicioInt int;
+     pcodacthastaInt int;
+     pnumeroInt int;
+     pextimg  character(4);
+           
+    
+BEGIN
+
+   BEGIN
+
+   IF accion = 'INSERT' THEN
+
+	   pcodactinicioInt := CAST(pcodact AS INTEGER);
+	   pcodacthastaInt  := CAST(pcodacthasta AS INTEGER);
+	   pnumeroInt       := CAST(pnumero AS INTEGER);
+
+	   /*RAISE NOTICE '% % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % % ', 
+			   pcodemp ,pcodact , pdenact , pmaract ,pmodact, 
+			   pfecregact, pfeccmpact, pcodconbie, pcodite, pspg_cuenta_act, CAST(pesttipinm AS VARCHAR(2)),
+			   pcatalogo, CAST(pcosto AS VARCHAR(6)), pestdepact, pobsact, pfotact, pcodpai, pcodest,
+			   pcodmun,pcod_pro,pnompro,pnumordcom,pmonordcom,pcodfuefin,pnumsolpag,pfecemisol,
+			   pcodsitcon,pcodconcom,pcodgru,pcodsubgru,pcodsec,ptipinm,pnumero;*/
+
+	   pextimg := substring(pfotact from (char_length(pfotact) -3 ) for 4 );
+	              
+	   WHILE pcodactinicioInt <= pcodacthastaInt LOOP
+
+		/*pcodact := CAST(pcodactinicioInt AS VARCHAR(15));
+		pnumero := CAST(pnumeroInt AS VARCHAR(15));*/
+
+		RAISE NOTICE ' CODACT: % ', trim(to_char(pcodactinicioInt,'0000000000000'));
+
+		INSERT INTO saf_activo 
+		(codemp,codact,denact,maract,modact,fecregact,
+		 feccmpact,codconbie, spg_cuenta_act,esttipinm, 
+		 catalogo,costo,estdepact,obsact,fotact,cod_pro,nompro,numordcom,monordcom, 
+		 codfuefin, numsolpag,fecemisol,codsitcon,codconcom,
+		 codgru,codsubgru, codsec,codite, tipinm,numero,
+		 fecordcomp,tipordcomp,numfact,fecfact,doccomp,nomprov,numordpag,numctlper,
+		 fectlper,codunires,codubifis,coduniresuso) 
+		 VALUES (pcodemp,trim(to_char(pcodactinicioInt,'000000000000000')),pdenact,pmaract,pmodact,pfecregact,
+			 pfeccmpact,pcodconbie, pspg_cuenta_act,pesttipinm,
+			 pcatalogo,pcosto,pestdepact,pobsact,trim(to_char(pcodactinicioInt,'000000000000000')) || pextimg,pcod_pro,pnompro,pnumordcom,pmonordcom,
+			 pcodfuefin, pnumsolpag,pfecemisol,pcodsitcon,pcodconcom,
+			 pcodgru,pcodsubgru, pcodsec,pcodite, ptipinm,trim(to_char(pnumeroInt,'000000000000000')),
+			 pfecordcomp,ptipordcomp,pnumfact,pfecfact,pdoccomp,pnomprov,pnumordpag,pnumctlper,pfectlper,
+	                 pcodunires,pcodubifis,pcoduniresuso); 
+
+	       
+		  FOR i IN 1 .. array_upper(Partes, 1)
+		  LOOP 
+		  
+		    INSERT INTO saf_dta (codemp,codact,ideact,seract,idchapa,
+					 coduniadm,codrespri,obsideact,estact,
+					 codusureg,codres,nompart)
+		    VALUES (pcodemp,trim(to_char(pcodactinicioInt,'000000000000000')),
+			    trim(to_char(pcodactinicioInt,'0000000000000') || CAST(i AS CHARACTER(1))),
+			    Partes[i].codant,141,'','',Partes[i].obspart,'R',
+			    '','',Partes[i].nompart);
+		    
+
+		  END LOOP; 
+			  
+		   
+
+		  pcodactinicioInt := pcodactinicioInt + 1;
+		  pnumeroInt       := pnumeroInt + 1;
+
+		  RAISE NOTICE ' CODACT: % ', trim(to_char(pcodactinicioInt,'00000000000000'));
+
+	   END LOOP;
+
+     ELSE
+
+       UPDATE saf_activo
+       SET codemp 	  = pcodemp,
+           denact 	  = pdenact,
+           maract 	  = pmaract,
+           modact 	  = pmodact,
+           fecregact 	  = pfecregact,
+           feccmpact 	  = pfeccmpact,
+           codconbie 	  = pcodconbie, 
+           spg_cuenta_act = pspg_cuenta_act,
+           esttipinm 	  = pesttipinm,
+           catalogo 	  = pcatalogo,
+           costo    	  = pcosto,
+           estdepact      = pestdepact,
+           obsact   	  = pobsact,
+           fotact         = pfotact,
+           cod_pro        = pcod_pro,
+           nompro         = pnompro,
+           numordcom      = pnumordcom,
+           monordcom      = pmonordcom,
+           codfuefin      = pcodfuefin, 
+           numsolpag      = pnumsolpag,
+           fecemisol      = pfecemisol,
+           codsitcon      = pcodsitcon,
+           codconcom      = pcodconcom,
+           codgru 	  = pcodgru,
+           codsubgru      = pcodsubgru, 
+           codsec         = pcodsec,
+           codite         = pcodite, 
+           tipinm         = ptipinm,
+           numero         = pnumero,
+           fecordcomp     = pfecordcomp,
+           tipordcomp     = ptipordcomp,
+           numfact        = pnumfact,
+           fecfact        = pfecfact,
+           doccomp        = pdoccomp,
+           nomprov        = pnomprov,
+           numordpag      = pnumordpag,
+           numctlper      = pnumctlper,
+           fectlper       = pfectlper,
+           codunires      = pcodunires,
+           codubifis      = pcodubifis,
+           coduniresuso   = pcoduniresuso
+       WHERE codact       = pcodact;
+
+       
+       
+	  DELETE FROM saf_dta WHERE codact = pcodact;	       
+	  FOR i IN 1 .. array_upper(Partes, 1)
+	  LOOP 
+		  
+	     INSERT INTO saf_dta (codemp,codact,ideact,seract,idchapa,
+				  coduniadm,codrespri,obsideact,estact,
+				  codusureg,codres,nompart)
+	     VALUES (pcodemp,pcodact,pcodact || CAST(i AS CHARACTER(1)),
+			    Partes[i].codant,141,'','',Partes[i].obspart,'R',
+			    '','',Partes[i].nompart);
+		    
+	  END LOOP;
+	   
+       
+
+   END IF;
+
+   EXCEPTION 
+
+	   WHEN invalid_transaction_termination THEN 
+	   
+	    ROLLBACK;
+	    RAISE NOTICE '%', 'Error en ejecución: se ha revertido la transaction..';
+	    RETURN FALSE;
+	    
+	   WHEN sql_routine_exception THEN 
+	   
+	    ROLLBACK;
+	    RAISE NOTICE '%', 'Error en ejecución: se ha revertido la transaction..';
+	    RETURN FALSE;
+	    
+	   WHEN raise_exception THEN 
+	   
+	    ROLLBACK;
+	    RAISE NOTICE '%', 'Error en ejecución: se ha revertido la transaction..';
+	    RETURN FALSE;
+	    
+	   WHEN plpgsql_error THEN 
+	   
+	    ROLLBACK;
+	    RAISE NOTICE '%', 'Error en ejecución: se ha revertido la transaction..';
+	    RETURN FALSE;
+
+   END;
+	  
+   RETURN TRUE;
+     
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION guardar_activos(character, character varying, text, character varying, character varying, date, date, character, character, character varying, integer, character, double precision, integer, text, character varying, character varying, text, character varying, double precision, character varying, character varying, date, character varying, character varying, character, character, character, character varying, character, date, character varying, character varying, date, character varying, character varying, character varying, character varying, date, character, character, character, integer, character, character, saf_dta_type[], character)
+  OWNER TO postgres;

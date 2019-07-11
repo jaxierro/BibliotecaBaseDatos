@@ -1,0 +1,75 @@
+﻿-- Function: cargar_data_recibo_web(character varying, character)
+
+-- DROP FUNCTION cargar_data_recibo_web(character varying, character);
+
+CREATE OR REPLACE FUNCTION cargar_data_recibo_web(pyear character varying, pmes character)
+  RETURNS boolean AS
+$BODY$ 
+ DECLARE
+
+     psqllink character(500);
+
+BEGIN
+  
+   BEGIN
+   
+	  RAISE NOTICE '%', 'Cargando....';
+     
+          DELETE FROM amperiodo;
+	  SELECT (sno_hperiodo.codnom)
+	   ,(sno_hperiodo.codperi),
+	    (sno_hperiodo.fecdesper),
+	    (sno_hperiodo.fechasper),
+	    anocur
+	  FROM sno_hperiodo 
+	  WHERE (sno_hperiodo.anocur=pyear OR pyear='0') AND 
+	        (sno_hperiodo.mes=pmes     OR pmes ='0');
+
+        
+	DELETE FROM amperson;
+	INSERT INTO amperson (cedula,nombre,fec_ing,apellido,cargo,cod_nom,nomina,ano)
+	SELECT Cast(sno_personal.cedper as Int), sno_personal.nomper, sno_personal.fecingper, 
+        sno_personal.apeper, sno_cargo.descar,sno_hnomina.codnom, 
+        sno_hnomina.desnom,sno_hnomina.anocurnom
+	FROM sno_hnomina INNER JOIN (sno_cargo INNER JOIN (sno_personal 
+	                INNER JOIN sno_hpersonalnomina ON sno_personal.codper = sno_hpersonalnomina.codper) ON 
+	                          (sno_cargo.codnom = sno_hpersonalnomina.codnom) AND 
+	                          (sno_cargo.codcar = sno_hpersonalnomina.codcar)) ON 
+	                          (sno_hnomina.codnom = sno_cargo.codnom) AND 
+	                          (sno_hnomina.codnom = sno_hpersonalnomina.codnom)
+	WHERE sno_hnomina.anocurnom=pyear;
+
+	DELETE FROM amrecibo;
+        INSERT INTO amrecibo (codigo,cedula,descripcion,tipo,valor,nomina,periodo,ano)
+	SELECT sno_hconcepto.codconc, Cast(sno_hsalida.codper as Int), 
+               sno_hconcepto.nomcon, sno_hsalida.tipsal, 
+               sno_hsalida.valsal, sno_hsalida.codnom, 
+               sno_hsalida.codperi,sno_hsalida.anocur 
+	FROM   sno_hsalida INNER JOIN sno_hconcepto ON (sno_hsalida.codperi = sno_hconcepto.codperi) AND 
+	       (sno_hsalida.codnom = sno_hconcepto.codnom) AND (sno_hsalida.codconc = sno_hconcepto.codconc)
+	WHERE ((sno_hsalida.tipsal)<>'P2') AND ((sno_hsalida.valsal)<>0) AND 
+               (sno_hsalida.anocur=pyear OR pyear = '0') AND ((sno_hsalida.mes=pmes OR pmes = '0'));
+       
+        DELETE FROM amusuari;
+	INSERT INTO amusuari (uslogin,usclave,uscedula)
+	SELECT Cast(sno_personal.cedper as Int),Cast(sno_personal.cedper as Int),Cast(sno_personal.cedper as Int)
+	FROM sno_personal;
+
+	RETURN TRUE;  
+        
+   EXCEPTION 
+
+   WHEN invalid_transaction_termination THEN 
+
+        ROLLBACK;
+	RAISE NOTICE '%', 'Error en ejecución: se ha revertido la transaction..';
+	RETURN FALSE;
+	
+   END;
+	  
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION cargar_data_recibo_web(character varying, character)
+  OWNER TO postgres;

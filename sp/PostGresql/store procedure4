@@ -1,0 +1,97 @@
+﻿-- Function: get_secuencias_codigo(integer, integer, integer)
+
+-- DROP FUNCTION get_secuencias_codigo(integer, integer, integer);
+
+CREATE OR REPLACE FUNCTION get_secuencias_codigo(IN pcantidad integer, IN pcodactini integer, IN pcodantini integer)
+  RETURNS TABLE(codactini character varying, codactfin character varying, codantini character varying, codantfin character varying) AS
+$BODY$ 
+   
+   DECLARE 
+
+      i      	   INT;
+
+      secactini    VARCHAR(50);
+      secactfin    VARCHAR(50);
+      
+      secantini    VARCHAR(50);
+      secantfin    VARCHAR(50);
+      
+      /*dsecact    VARCHAR(50);
+      dsecant 	   VARCHAR(50);*/
+      
+      seccodactini INT;
+      seccodactfin INT;
+      
+      seccodantini INT;
+      seccodantfin INT;
+      
+      len_res      INT;
+      k 	   INT;
+
+        
+BEGIN 
+
+   CREATE TEMPORARY TABLE tb_rs 
+   (
+        T_codactini  VARCHAR(50), 
+        T_codactfin  VARCHAR(50),
+        T_codantini  VARCHAR(50),
+        T_codantfin  VARCHAR(50)
+   )
+   ON COMMIT DELETE ROWS;
+
+   i := 0;
+  
+   seccodactfin := (pcodactini + pcantidad);
+   seccodantfin := (pcodantini + pcantidad);
+
+   secactini    := CAST(pcodactini   AS VARCHAR(50));
+   secantini    := CAST(pcodantini   As VARCHAR(50));
+
+   secactfin    := CAST(seccodactfin AS VARCHAR(50));
+   secantfin    := CAST(seccodantfin AS VARCHAR(50));
+
+   len_res      := length(CAST(pcodactini AS VARCHAR(50)));
+   k := 0;
+   WHILE k < (15 - len_res) LOOP
+       secactini := TEXTCAT('0',secactini);
+       k:=k+1;
+   END LOOP;
+
+   len_res   := length(CAST(seccodactfin AS VARCHAR(50)));
+   k := 0;
+   WHILE k < (15 - len_res) LOOP
+       secactfin := TEXTCAT('0',secactfin);
+       k:=k+1;
+   END LOOP;
+
+   len_res   := length(CAST(pcodantini AS VARCHAR(50)));
+   k := 0;
+   WHILE k < (15 - len_res) LOOP
+       secantini := TEXTCAT('0',secantini);
+       k:=k+1;
+   END LOOP;
+
+   len_res   := length(CAST(secantfin AS VARCHAR(50)));
+   k := 0;
+   WHILE k < (15 - len_res) LOOP
+       secantfin := TEXTCAT('0',secantfin);
+       k:=k+1;
+   END LOOP;
+
+  
+   INSERT INTO tb_rs (T_codactini,T_codactfin,T_codantini,T_codantfin) 
+   VALUES (secactini,secactfin,secantini,secantfin);
+  
+   RETURN Query SELECT T_codactini,T_codactfin,T_codantini,T_codantfin
+		FROM tb_rs;
+		  
+   DROP TABLE tb_rs;
+
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION get_secuencias_codigo(integer, integer, integer)
+  OWNER TO postgres;

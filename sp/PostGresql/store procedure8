@@ -1,0 +1,126 @@
+﻿-- Function: search_saf_activos(character varying, text, character, date, date)
+
+-- DROP FUNCTION search_saf_activos(character varying, text, character, date, date);
+
+CREATE OR REPLACE FUNCTION search_saf_activos(IN pcodact character varying DEFAULT NULL::character varying, IN pdenact text DEFAULT NULL::text, IN pnumero character DEFAULT NULL::bpchar, IN pfecregactini date DEFAULT NULL::date, IN pfecregactifin date DEFAULT NULL::date)
+  RETURNS TABLE(r_codact character varying, r_denact text, r_codant character varying, r_marca character varying, r_modelo character varying, r_fecregact date, r_feccmpact date, r_costo double precision, r_codconbie character, r_codfuefin character varying, r_codsitcon character varying, r_codconcom character varying, r_obsact text, r_catalogo character, r_spg_cuenta_act character varying, r_esttipinm integer, r_numordcom character varying, r_cod_pro character varying, r_fecemisol date, r_nompro text, r_monordcom double precision, r_numsolpag character varying, r_estdepact integer, r_fotact character varying, r_codsec character, r_codgru character, r_codsubgru character, r_codite character, r_spg_cuenta_dep character varying, r_tipinm character varying, r_numero character, r_fecordcomp date, r_tipordcomp character varying, r_numfact character varying, r_fecfact date, r_doccomp character varying, r_nomprov character varying, r_numordpag character varying, r_numctlper character varying, r_fectlper date, r_codunires character, r_codubifis character, r_coduniresuso character) AS
+$BODY$ 
+   
+   DECLARE 
+
+      i int;  
+      
+BEGIN  
+
+   CREATE TEMPORARY TABLE tb_rs 
+    (
+        T_codact    CHARACTER VARYING(15), 
+        T_denact    TEXT,
+        T_codant    CHARACTER VARYING(15), 
+        T_maract    CHARACTER VARYING(100), 
+        T_modact    CHARACTER VARYING(100),
+        T_fecregact DATE,
+        T_feccmpact DATE,
+	T_costo     DOUBLE PRECISION,
+	T_codconbie CHARACTER(2),
+	T_codfuefin CHARACTER VARYING(2),
+	T_codsitcon CHARACTER VARYING(1),
+	T_codconcom CHARACTER VARYING(2),
+	T_obsact    TEXT,
+	T_catalogo  CHARACTER(15),
+	T_spg_cuenta_act CHARACTER VARYING(58),
+	T_esttipinm  INTEGER,
+	T_numordcom  CHARACTER VARYING(15),
+	T_cod_pro    CHARACTER VARYING(10),
+	T_fecemisol  DATE,
+	T_nompro     TEXT,
+	T_monordcom  DOUBLE PRECISION,
+	T_numsolpag  CHARACTER VARYING(15),
+	T_estdepact  INTEGER,
+	T_fotact     CHARACTER VARYING(500),
+	T_codsec     CHARACTER(3),
+	T_codgru     CHARACTER(3),
+	T_codsubgru  CHARACTER(3),
+	T_codite     CHARACTER(3),
+	T_spg_cuenta_dep CHARACTER VARYING(58),
+	T_tipinm  CHARACTER VARYING(1),
+	T_numero  CHARACTER(15),
+	T_fecordcomp DATE,
+	T_tipordcomp CHARACTER VARYING(20),
+	T_numfact CHARACTER VARYING(50),
+	T_fecfact DATE,
+	T_doccomp CHARACTER VARYING(256),
+	T_nomprov CHARACTER VARYING(100),
+	T_numordpag CHARACTER VARYING(30),
+	T_numctlper CHARACTER VARYING(15),
+	T_fectlper  DATE,
+	T_codunires CHARACTER(4), 
+        T_codubifis CHARACTER(4),
+        T_coduniresuso CHARACTER(4)
+    )
+    ON COMMIT DELETE ROWS; 
+
+    IF (pcodact IS NULL AND pdenact IS NULL AND 
+        pnumero IS NULL AND pfecregactini IS NULL AND 
+        pfecregactifin IS NULL) THEN
+
+      INSERT INTO tb_rs (T_codact, T_denact, T_codant, T_maract, T_modact, T_fecregact, T_feccmpact, T_costo, T_codconbie, T_codfuefin, 
+			   T_codsitcon, T_codconcom , T_obsact,T_catalogo,T_spg_cuenta_act,T_esttipinm,T_numordcom,
+			   T_cod_pro,T_fecemisol,T_nompro,T_monordcom,T_numsolpag,T_estdepact,T_fotact,T_codsec,T_codgru,T_codsubgru,
+			   T_codite,T_spg_cuenta_dep,T_tipinm,T_numero, T_fecordcomp,T_tipordcomp,T_numfact,T_fecfact,
+		           T_doccomp,T_nomprov,T_numordpag,T_numctlper,T_fectlper,T_codunires,T_codubifis,T_coduniresuso)
+	SELECT codact, denact, numero, maract, modact, fecregact,
+	       feccmpact,costo,codconbie,codfuefin,codsitcon,codconcom,
+	       codpai,codest,codmun,obsact,catalogo,spg_cuenta_act,esttipinm,
+	       numordcom,cod_pro,fecemisol,nompro,monordcom,numsolpag,estdepact,fotact,
+	       codsec,codgru,codsubgru,codite,spg_cuenta_dep,
+	       tipinm,numero,numctlper,fectlper,codunires,codubifis,coduniresuso
+	FROM saf_activo
+	LIMIT 2000;
+
+    ELSE
+
+        
+
+        INSERT INTO tb_rs (T_codact, T_denact, T_codant, T_maract, T_modact, T_fecregact, T_feccmpact, T_costo, T_codconbie, T_codfuefin, 
+			   T_codsitcon, T_codconcom , T_obsact,T_catalogo,T_spg_cuenta_act,T_esttipinm,T_numordcom,
+			   T_cod_pro,T_fecemisol,T_nompro,T_monordcom,T_numsolpag,T_estdepact,T_fotact,T_codsec,T_codgru,T_codsubgru,
+			   T_codite,T_spg_cuenta_dep,T_tipinm,T_numero,T_fecordcomp,T_tipordcomp,T_numfact,T_fecfact,
+		           T_doccomp,T_nomprov,T_numordpag,T_numctlper,T_fectlper,T_codunires,T_codubifis,T_coduniresuso)
+	SELECT codact, denact, numero, maract, modact, fecregact,
+	       feccmpact,costo,codconbie,codfuefin,codsitcon,codconcom,
+	       obsact,catalogo,spg_cuenta_act,esttipinm,numordcom,cod_pro,
+	       fecemisol,nompro,monordcom,numsolpag,estdepact,fotact,
+	       codsec,codgru,codsubgru,codite,spg_cuenta_dep,
+	       tipinm,numero,fecordcomp,tipordcomp,numfact,fecfact,
+	       doccomp,nomprov,numordpag,numctlper,fectlper,codunires,
+	       codubifis,coduniresuso
+	FROM saf_activo
+	WHERE (codact = pcodact   OR  pcodact IS NULL ) AND
+		    (denact LIKE '%' || pdenact || '%' OR  pdenact IS NULL) AND
+		    (numero = pnumero   OR  pnumero IS NULL )  AND
+		    ((fecregact BETWEEN pfecregactini AND pfecregactifin)  OR 
+		    (pfecregactini IS NULL OR pfecregactifin IS NULL) );
+
+      
+    END IF;
+
+    RETURN Query SELECT T_codact, T_denact, T_codant, T_maract,T_modact, T_fecregact,
+		       T_feccmpact, T_costo, T_codconbie, T_codfuefin, 
+		       T_codsitcon, T_codconcom , T_obsact,T_catalogo,T_spg_cuenta_act,
+		       T_esttipinm,T_numordcom,T_cod_pro,T_fecemisol,T_nompro,T_monordcom,T_numsolpag,T_estdepact,
+		       T_fotact,T_codsec,T_codgru,T_codsubgru,T_codite,T_spg_cuenta_dep,
+		       T_tipinm,T_numero,T_fecordcomp,T_tipordcomp,T_numfact,T_fecfact,
+		       T_doccomp,T_nomprov,T_numordpag,T_numctlper,T_fectlper,
+		       T_codunires,T_codubifis,T_coduniresuso
+		FROM tb_rs;
+   DROP TABLE tb_rs;
+    
+ 
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION search_saf_activos(character varying, text, character, date, date)
+  OWNER TO postgres;

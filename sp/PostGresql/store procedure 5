@@ -1,0 +1,58 @@
+﻿-- Function: get_secuencias_seriales(integer, integer)
+
+-- DROP FUNCTION get_secuencias_seriales(integer, integer);
+
+CREATE OR REPLACE FUNCTION get_secuencias_seriales(IN pcantidad integer, IN pcodinicio integer)
+  RETURNS TABLE(ideact character varying, seract character varying) AS
+$BODY$ 
+   
+   DECLARE 
+
+      i int;
+      numserial CHARACTER VARYING(8);
+      secuencia int;
+      len_res int;
+      k int;
+     
+    
+BEGIN 
+
+   CREATE TEMPORARY TABLE tb_rs 
+    (
+        T_ideact  CHARACTER VARYING(15), 
+        T_seract  CHARACTER VARYING(25)
+    )
+    ON COMMIT DELETE ROWS;
+
+   i := 0;
+  
+   
+   WHILE i < pcantidad LOOP
+   
+      secuencia := pcodinicio+i;
+      len_res   := length(CAST(secuencia as CHARACTER VARYING(15)));
+      seract := cast(secuencia as CHARACTER VARYING(8));
+      k := 0;
+      
+      WHILE k < (8 - len_res) LOOP
+         seract := TEXTCAT('0',seract);
+         k:=k+1;
+      END LOOP;
+      
+      INSERT INTO tb_rs (T_ideact,T_seract) VALUES (1,seract);
+      i := i + 1;
+      
+   END LOOP;
+
+  
+   RETURN Query SELECT T_ideact,T_seract 
+		FROM tb_rs;
+   DROP TABLE tb_rs;
+
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION get_secuencias_seriales(integer, integer)
+  OWNER TO postgres;

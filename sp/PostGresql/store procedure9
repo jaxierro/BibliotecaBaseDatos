@@ -1,0 +1,180 @@
+﻿-- Function: search_saf_activos_rpt(character varying, character varying, text, date, character varying, character varying, character varying)
+
+-- DROP FUNCTION search_saf_activos_rpt(character varying, character varying, text, date, character varying, character varying, character varying);
+
+CREATE OR REPLACE FUNCTION search_saf_activos_rpt(IN pcodactdesde character varying DEFAULT NULL::character varying, IN pcodacthasta character varying DEFAULT NULL::character varying, IN pdenact text DEFAULT NULL::text, IN pfecordcomp date DEFAULT '1900-01-01'::date, IN pcoduniadm character varying DEFAULT NULL::character varying, IN pcoduniresuso character varying DEFAULT NULL::character varying, IN pcodunifis character varying DEFAULT NULL::character varying)
+  RETURNS TABLE(r_codact character varying, r_denact text, r_maract character varying, r_modact character varying, r_fecregact date, r_feccmpact date, r_codrot character, r_codconbie character, r_codite character, r_spg_cuenta_act character varying, r_spg_cuenta_dep character varying, r_sc_cuenta character varying, r_esttipinm smallint, r_catalogo character, r_codgru character, r_codsubgru character, r_codsec character, r_costo double precision, r_obsact text, r_fotact character varying, r_codest character varying, r_codmun character varying, r_cod_pro character varying, r_nompro text, r_ced_bene character varying, r_numordcom character varying, r_monordcom double precision, r_codfuefin character varying, r_numsolpag character varying, r_fecemisol date, r_codsitcon character varying, r_codconcom character varying, r_numregpag character varying, r_codprorot character varying, r_fecrot date, r_estcla character varying, r_tipinm character varying, r_numero character, r_codaut character, r_codunires character, r_codubifis character, r_estdepact integer, r_codestpro1 character varying, r_fecordcomp date, r_tipordcomp character varying, r_numfact character varying, r_fecfact date, r_doccomp character varying, r_nomprov character varying, r_numordpag character varying, r_numctlper character varying, r_fectlper date, r_coduniresuso character, r_seract character varying, r_ideact character, r_idchapa character varying, r_fecincact date, r_fecdesact date, r_estact character varying, r_nomunires character varying, r_encunires character varying, r_denuniadm character varying) AS
+$BODY$ 
+   
+   DECLARE 
+
+      i int; 
+
+BEGIN 
+   
+   CREATE TEMPORARY TABLE tb_rs 
+    (
+       T_codact character varying(15) NOT NULL,
+       T_denact text,
+       T_maract character varying(100),
+       T_modact character varying(100),
+       T_fecregact date,
+       T_feccmpact date,
+       T_codrot character(2),
+       T_codconbie character(2),
+       T_codite character(3), -- Codigo del Item del Activo
+       T_spg_cuenta_act character varying(58) DEFAULT ' '::character varying,
+       T_spg_cuenta_dep character varying(58) DEFAULT ' '::character varying,
+       T_sc_cuenta character varying(25),
+       T_esttipinm smallint DEFAULT 0,
+       T_catalogo character(15),
+       T_codgru character(3),
+       T_codsubgru character(3),
+       T_codsec character(3),
+       T_costo double precision,
+       T_obsact text,
+       T_fotact character varying(500),
+       T_codest character varying(3),
+       T_codmun character varying(3),
+       T_cod_pro character varying(10),
+       T_nompro text,
+       T_ced_bene character varying(10),
+       T_numordcom character varying(15),
+       T_monordcom double precision,
+       T_codfuefin character varying(2) DEFAULT '--'::character varying,
+       T_numsolpag character varying(15),
+       T_fecemisol date,
+       T_codsitcon character varying(1),
+       T_codconcom character varying(2),
+       T_numregpag character varying(25), 
+       T_codprorot character varying(10),
+       T_fecrot date,
+       T_estcla character varying(1),
+       T_tipinm character varying(1),
+       T_numero character(15),
+       T_codaut character(4),
+       T_codunires character(4),
+       T_codubifis character(4),
+       T_estdepact integer,
+       T_codestpro1 character varying(3),
+       T_fecordcomp date,
+       T_tipordcomp character varying(20),
+       T_numfact character varying(50),
+       T_fecfact date,
+       T_doccomp character varying(256),
+       T_nomprov character varying(100),
+       T_numordpag character varying(30),
+       T_numctlper character varying(30),
+       T_fectlper date,
+       T_coduniresuso character(4),
+       T_seract  character varying(25), 
+       T_ideact  character(20), 
+       T_idchapa character varying(10), 
+       T_fecincact date, 
+       T_fecdesact date, 
+       T_estact character varying(50),
+       T_nomunires character varying(50), 
+       T_encunires character varying(50), 
+       T_denuniadm character varying(254)
+    )
+    ON COMMIT DELETE ROWS;
+
+        
+    IF (  pcodactdesde  IS NULL  AND
+          pcodacthasta  IS NULL  AND
+          pdenact       IS NULL  AND
+          pfecordcomp   IS NULL  AND
+          pcoduniadm    IS NULL  AND
+          pcoduniresuso IS NULL  AND
+          pcodunifis    IS NULL          
+        ) THEN
+
+        RAISE NOTICE '%', 'CARGANDO ...';
+
+        INSERT INTO tb_rs (T_codact, T_denact, T_maract, T_modact, T_fecregact, T_feccmpact, 
+			   T_codrot, T_codconbie, T_codite, T_spg_cuenta_act, T_spg_cuenta_dep, T_sc_cuenta, 
+			   T_esttipinm, T_catalogo, T_codgru, T_codsubgru, T_codsec, T_costo, T_obsact, 
+			   T_fotact, T_codest, T_codmun, T_cod_pro, T_nompro, T_ced_bene, T_numordcom, 
+			   T_monordcom, T_codfuefin, T_numsolpag, T_fecemisol, T_codsitcon, T_codconcom, 
+			   T_numregpag, T_codprorot, T_fecrot, T_estcla, T_tipinm, T_numero, T_codaut, 
+			   T_codunires, T_codubifis, T_estdepact, T_codestpro1, T_fecordcomp, T_tipordcomp, 
+			   T_numfact, T_fecfact, T_doccomp, T_nomprov, T_numordpag, T_numctlper, T_fectlper, 
+			   T_coduniresuso,T_seract,T_ideact ,T_idchapa ,T_fecincact,T_fecdesact,T_estact,
+			   T_nomunires,T_encunires,T_denuniadm)
+	SELECT a.codact, a.denact,    a.maract, a.modact, a.fecregact, a.feccmpact, 
+	       a.codrot, a.codconbie, a.codite, a.spg_cuenta_act, a.spg_cuenta_dep, a.sc_cuenta, 
+               a.esttipinm, a.catalogo, a.codgru, a.codsubgru, a.codsec, a.costo, a.obsact, 
+	       a.fotact, a.codest, a.codmun, a.cod_pro, a.nompro, a.ced_bene, a.numordcom, 
+               a.monordcom, a.codfuefin, a.numsolpag, a.fecemisol, a.codsitcon, a.codconcom, 
+               a.numregpag, a.codprorot, a.fecrot, a.estcla, a.tipinm, a.numero, a.codaut, 
+               a.codunires, a.codubifis, a.estdepact, a.codestpro1, a.fecordcomp, a.tipordcomp, 
+               a.numfact, a.fecfact, a.doccomp, a.nomprov, a.numordpag, a.numctlper, a.fectlper, 
+               a.coduniresuso, dt.seract, dt.ideact, dt.idchapa, dt.fecincact, dt.fecdesact, dt.estact,
+               res.nomunires, res.encunires, ud.denuniadm
+        FROM   saf_activo a LEFT JOIN saf_dta dt ON dt.codact = a.codact
+                            LEFT JOIN saf_unidad_responsable res   ON res.codunires  = a.coduniresuso
+			    LEFT JOIN saf_unidadadministrativa ud ON ud.coduniadm   = dt.coduniadm
+        LIMIT 5;           
+
+    ELSE
+
+      INSERT INTO tb_rs (T_codact, T_denact, T_maract, T_modact, T_fecregact, T_feccmpact, 
+			   T_codrot, T_codconbie, T_codite, T_spg_cuenta_act, T_spg_cuenta_dep, T_sc_cuenta, 
+			   T_esttipinm, T_catalogo, T_codgru, T_codsubgru, T_codsec, T_costo, T_obsact, 
+			   T_fotact, T_codest, T_codmun, T_cod_pro, T_nompro, T_ced_bene, T_numordcom, 
+			   T_monordcom, T_codfuefin, T_numsolpag, T_fecemisol, T_codsitcon, T_codconcom, 
+			   T_numregpag, T_codprorot, T_fecrot, T_estcla, T_tipinm, T_numero, T_codaut, 
+			   T_codunires, T_codubifis, T_estdepact, T_codestpro1, T_fecordcomp, T_tipordcomp, 
+			   T_numfact, T_fecfact, T_doccomp, T_nomprov, T_numordpag, T_numctlper, T_fectlper, 
+			   T_coduniresuso,T_seract,T_ideact ,T_idchapa ,T_fecincact,T_fecdesact,T_estact,
+			   T_nomunires,T_encunires,T_denuniadm)
+	SELECT a.codact, a.denact,    a.maract, a.modact, a.fecregact, a.feccmpact, 
+	       a.codrot, a.codconbie, a.codite, a.spg_cuenta_act, a.spg_cuenta_dep, a.sc_cuenta, 
+               a.esttipinm, a.catalogo, a.codgru, a.codsubgru, a.codsec, a.costo, a.obsact, 
+	       a.fotact, a.codest, a.codmun, a.cod_pro, a.nompro, a.ced_bene, a.numordcom, 
+               a.monordcom, a.codfuefin, a.numsolpag, a.fecemisol, a.codsitcon, a.codconcom, 
+               a.numregpag, a.codprorot, a.fecrot, a.estcla, a.tipinm, a.numero, a.codaut, 
+               a.codunires, a.codubifis, a.estdepact, a.codestpro1, a.fecordcomp, a.tipordcomp, 
+               a.numfact, a.fecfact, a.doccomp, a.nomprov, a.numordpag, a.numctlper, a.fectlper, 
+               a.coduniresuso, dt.seract, dt.ideact, dt.idchapa, dt.fecincact, dt.fecdesact, dt.estact,
+               res.nomunires, res.encunires, ud.denuniadm
+        FROM   saf_activo a LEFT JOIN saf_dta dt ON dt.codact = a.codact
+                            LEFT JOIN saf_unidad_responsable res   ON res.codunires  = a.coduniresuso
+			    LEFT JOIN saf_unidadadministrativa ud ON ud.coduniadm   = dt.coduniadm
+	WHERE (
+	         (a.codact = pcodactdesde   OR  pcodactdesde IS NULL ) AND 
+	         (a.codact BETWEEN pcodactdesde AND pcodacthasta)      OR
+	        -- (a.denact LIKE CONCAT(CONCAT('%',pdenact),'%') OR pdenact IS NULL) AND
+	         (a.denact LIKE '%' || pdenact || '%' OR pdenact IS NULL) AND
+	         (a.fecordcomp BETWEEN pfecordcomp AND pfecordcomp OR pfecordcomp = '1900-01-01') AND
+	         (a.codubifis    = pcodunifis    OR NULL IS NULL) AND
+		 (a.coduniresuso = pcoduniresuso OR NULL IS NULL) 
+	      );
+	      
+
+	RAISE NOTICE '%', pdenact;	
+
+ END IF;
+
+ RETURN Query SELECT T_codact, T_denact, T_maract, T_modact, T_fecregact, T_feccmpact, 
+		     T_codrot, T_codconbie, T_codite, T_spg_cuenta_act, T_spg_cuenta_dep, T_sc_cuenta, 
+		     T_esttipinm, T_catalogo, T_codgru, T_codsubgru, T_codsec, T_costo, T_obsact, 
+		     T_fotact, T_codest, T_codmun, T_cod_pro, T_nompro, T_ced_bene, T_numordcom, 
+		     T_monordcom, T_codfuefin, T_numsolpag, T_fecemisol, T_codsitcon, T_codconcom, 
+		     T_numregpag, T_codprorot, T_fecrot, T_estcla, T_tipinm, T_numero, T_codaut, 
+		     T_codunires, T_codubifis, T_estdepact, T_codestpro1, T_fecordcomp, T_tipordcomp, 
+		     T_numfact, T_fecfact, T_doccomp, T_nomprov, T_numordpag, T_numctlper, T_fectlper, 
+		     T_coduniresuso, T_seract,T_ideact ,T_idchapa ,T_fecincact,T_fecdesact,T_estact,
+		     T_nomunires,T_encunires,T_denuniadm
+		FROM tb_rs;
+
+   DROP TABLE tb_rs;
+    
+  
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100
+  ROWS 1000;
+ALTER FUNCTION search_saf_activos_rpt(character varying, character varying, text, date, character varying, character varying, character varying)
+  OWNER TO postgres;
